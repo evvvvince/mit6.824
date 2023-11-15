@@ -19,6 +19,7 @@ package raft
 
 import (
 	//	"bytes"
+	
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -253,6 +254,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		rf.status = Follower
 		rf.voteFor = -1
 		rf.currentTerm = args.Term
+		rf.timer.Reset(rf.overTime)
 	}
 	
 	//如果还没投票
@@ -266,7 +268,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		reply.VoteGranted = true
 		// fmt.Printf("server %v mid RequestVote\n", rf.me)
 		
-		rf.timer.Reset(rf.overTime)
+		
 		//fmt.Printf("[	    func-RequestVote-rf(%v)		] : voted rf[%v]\n", rf.me, rf.voteFor)
 	} else { // 只剩下任期相同，但是票已经给了，此时存在两种情况
 
@@ -279,10 +281,10 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 			return
 		} else { // 2. 当前的节点票已经给了同一个人了，但是由于sleep等网络原因，又发送了一次请求
 			// 重置自身状态
+			//fmt.Println("重置自身状态")
 			rf.status = Follower 
 		}
 
-		rf.timer.Reset(rf.overTime)
 
 	}
 	// fmt.Printf("server %v end RequestVote\n", rf.me)
@@ -373,7 +375,7 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 			for i, _ := range rf.nextIndex {
 				rf.nextIndex[i] = len(rf.logs) + 1
 			}
-			rf.timer.Reset(HeartBeatTimeout)
+			
 			//fmt.Printf("[	sendRequestVote-func-rf(%v)		] be a leader\n", rf.me)
 		}
 
