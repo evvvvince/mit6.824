@@ -19,7 +19,7 @@ type Persister struct {
 
 func MakePersister() *Persister {
 	return &Persister{}
-}
+} 
 
 func clone(orig []byte) []byte {
 	x := make([]byte, len(orig))
@@ -67,4 +67,17 @@ func (ps *Persister) SnapshotSize() int {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	return len(ps.snapshot)
+}
+
+func (ps *Persister) SaveStateAndSnapshot(state []byte, snapshot []byte) {
+	ps.mu.Lock()
+	defer ps.mu.Unlock()
+	ps.raftstate = clone(state)
+	ps.snapshot = clone(snapshot)
+}
+
+func (ps *Persister) SaveRaftState(state []byte) {
+	ps.mu.Lock()
+	defer ps.mu.Unlock()
+	ps.raftstate = clone(state)
 }
